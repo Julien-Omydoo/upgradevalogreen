@@ -26,14 +26,31 @@
         <xpath expr="//div[@id='quote_content']/div[8]/t/div[1]/a/t[2]" position="replace">
             <t t-else=""> <span t-field="sale_order.sign_and_accept_customized"/></t>
         </xpath>
+        <xpath expr="//div/div/div[8]/div/a/t[1]" position="replace">
+             <t t-if="not sale_order.signature"> <span t-field="sale_order.sign_and_accept_customized"/></t>
+        </xpath>
     </template>
 
     <!--======== 	mail_notification_paynow_online VIEW ========-->
     <template id="mail_notification_paynow_online_inherit_omydoo" inherit_id="sale.mail_notification_paynow_online">
         <!-- Replace 'Sign & Accept' by the custom field -->
-        <xpath expr="//t/t[1]/t[2]" position="replace">
-            <t t-else="" t-set="access_name"> <span t-field="record.review_sign_and_accept_customized"/></t>
+
+        <xpath expr="//t[@t-if=&#34;record._name == 'sale.order'&#34;]" position="replace">
+             <t t-if="record._name == 'sale.order'">
+                    <t t-set="is_transaction_pending" t-value="record.get_portal_last_transaction().state == 'pending'"/>
+                    <t t-if="record.has_to_be_signed(include_draft=True)">
+                        <t t-if="record.has_to_be_paid()" t-set="access_name">
+                            <t t-if="is_transaction_pending" t-esc="record.review_sign_and_accept_customized"/>
+                            <t t-else="" t-esc="record.review_sign_and_accept_customized"/>
+                        </t>
+                        <t t-else="" t-set="access_name" t-esc="record.review_sign_and_accept_customized"/>
+                    </t>
+                    <t t-elif="record.has_to_be_paid(include_draft=True) and not is_transaction_pending" t-set="access_name" t-esc="record.review_sign_and_accept_customized"/>
+                    <t t-elif="record.state in ('draft', 'sent')" t-set="access_name" t-esc="record.review_sign_and_accept_customized"/>
+                </t>
         </xpath>
 
     </template>
 </odoo>
+
+
